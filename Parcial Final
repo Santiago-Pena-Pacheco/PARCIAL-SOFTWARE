@@ -1,0 +1,116 @@
+Parcial final
+
+
+Integrantes:
+Nicole Camila Abril Reyes
+Santiago Peña Pacheco
+
+
+Docente:
+Claudia Marcela Cifuentes
+
+
+ Propuesta para el desarrollo del proyecto
+
+Seleccionamos la tercera propuesta, enfocada en un restaurante. Desarrollaremos una aplicación pensada para resolver los problemas cotidianos del negocio y cubrir sus necesidades principales.
+
+1.	Alcance:
+El proyecto consiste en desarrollar una aplicación que permita gestionar los pedidos de un restaurante, desde el momento en que el cliente realiza su solicitud hasta que recibe sus alimentos en la mesa.
+Los pedidos avanzan por las etapas de registrado, en preparación, listo para servir y entregado, y es el administrador quien cambia el estado de forma manual, ya sea avanzando el pedido a la siguiente fase o cancelándolo. Para mantener informados a los usuarios, se implementará el patrón Observer, encargado de notificar los cambios que se produzcan durante el proceso, las pantallas suscritas reciben el aviso y el diseño permite agregar más sin modificar la clase Pedido.
+Para controlar qué se puede hacer con un pedido según su fase, se implementará el patrón State. Su uso se ve sobre todo en la cancelación donde un pedido registrado se cancela sin costo, uno en preparación se cancela y se cobra el 25 %, y uno listo para servir o entregado no se puede cancelar.
+El administrador tendrá acceso a una vista general de los pedidos, donde podrá consultar su estado y valor total. También podrá avanzar un pedido al siguiente o cancelarlo, según las reglas definidas.
+Para facilitar la creación de pedidos, se utilizarán dos patrones de diseño. El patrón Factory Method permitirá generar pedidos a partir de los combos establecidos en el menú del restaurante, mientras que el patrón Builder se empleará para crear pedidos personalizados, permitiendo seleccionar individualmente los platos, bebidas y complementos que desee el cliente.
+Por último, se implementará el patrón Singleton para reunir la información relacionada con las promociones y los descuentos disponibles según el día de la semana. Esto permitirá que todos los pedidos consulten una misma configuración de promociones y que los descuentos se calculen correctamente al momento de generar la cuenta.
+
+2.	Requisitos funcionales:
+•	El sistema debe permitir registrar los pedidos realizados por los comensales.
+•	El sistema debe permitir al administrador ver los pedidos con su estado.
+•	El sistema debe mostrar los platos, bebidas y combos disponibles.
+•	El sistema debe permitir realizar pedidos con combos o productos individuales. 
+•	El sistema debe permitir elegir el combo de una lista.
+•	El sistema debe calcular el precio del pedido con los descuentos incluidos.
+•	El sistema debe permitir al administrador cambiar los porcentajes de descuento de combos y del total, en el caso de 2x1 de bebidas no es editable.
+•	El sistema debe permitir al administrador cambiar el estado de un pedido según las reglas del pedido.
+•	El sistema debe mostrar los pedidos atendidos durante el día.
+•	El sistema debe permitir cancelar pedidos indicando el motivo, según la fase en la que esté el pedido.
+•	El sistema debe permitir al administrador modificar los precios del menú.
+
+Requisitos no funcionales:
+•	La aplicación debe contar con una interfaz clara y fácil de utilizar para el administrador y el personal.
+•	El sistema debe evitar saturarse cuando varios usuarios realicen acciones al mismo tiempo.
+•	La información de los pedidos debe mantenerse organizada para facilitar su consulta y seguimiento.
+•	El sistema debe responder a las acciones de los usuarios en un máximo de 3 segundos.
+•	La aplicación debe permitir el acceso únicamente a usuarios autorizados mediante un usuario y contraseña.
+•	El sistema debe ser consistente donde todos los pedidos deben usar las mismas promociones.
+
+3.	Problemas de diseño  
+•	Problema 1: Crear pedidos a partir de combos del menú  
+Situación: El restaurante ofrece combos fijos como Combo Hamburguesa, Combo Familiar, Combo Infantil. Cada combo trae platos, bebida y complemento predefinidos.  
+Diseño inicial: Se utiliza método grande con if/else o switch revisar qué productos corresponde a cada combo y agregar según el nombre del combo. 
+Problema: Para agregar el “Combo Ejecutivo” hay que modificar ese bloque en varios lugares, por lo que es fácil olvidar uno y el pedido sale incompleto. Además, el sistema se vuelve más difícil de mantener y actualizar. 
+
+•	Problema 2: Crear pedidos personalizados  
+Situación: Un cliente arma su pedido con 1 plato, 2 bebidas y 1 complemento. Los platos, bebidas y complementos se combinan de muchas formas.
+Diseño inicial: Un constructor de Pedido que recibe muchos parámetros donde incluso algunos son nulos u opcionales. Otra opción puede terminar en la sobre carga de constructores.  
+Problema: Aparece el “constructor telescópico”: new Pedido(plato, null, null, bebida, 2, null, true) que resulta ilegible y propenso a errores. Además, cada vez que se agrega una nueva opción al pedido, es necesario modificar o crear más constructores, haciendo que el código sea más difícil de manejar. 
+
+•	Problema 3: Informar los cambios de estado de un pedido  
+Situación: Cuando un pedido pasa por los diferentes estados de “registrado” a “en preparación”, de “listo para servir” a “entregado”, o se cancela, deben enterarse las pantallas del sistema, como la pantalla gráfica.
+Diseño inicial: La clase Pedido llama directamente a cada pantalla (pantallaGrafica.actualizar(), otraPantalla.actualizar()...) cuando cambia su estado, o también las pantallas consultan cada pocos segundos si algo cambió en el pedido. 
+Problema: La clase Pedido queda dependiendo de todas las pantallas del sistema. Al agregar una nueva, como por ejemplo, un panel para el cliente obliga a modificar esa clase. Revisar constantemente si hay cambios gasta recursos y puede superar el límite de respuesta de 3 segundos. 
+
+•	Problema 4: Promociones y descuentos según el día  
+Situación: Los martes hay 2x1 en bebidas, los viernes 15 % en combos y los domingos 10% en el total. El administrador puede cambiarlas.  
+Diseño inicial: Cada pedido guarda su propia copia de las promociones, o cada clase que calcula la cuenta las define por su cuenta.  
+Problema: Si el administrador cambia una promoción, algunos pedidos pueden seguir utilizando las condiciones anteriores, por lo que unos pedidos pueden usar el valor viejo y otros el nuevo. Se calculan cuentas distintas para la misma situación, y el código de descuentos queda duplicado. 
+
+•	Problema 5: Cancelación de pedidos según el estado
+Situación: Un pedido solo se puede cancelar según el estado en la que esté, como en preparación se cobra el 25 %, y listo para servir y entregado se rechaza la cancelación.
+Diseño inicial: Un if/else o switch dentro del método cancelar() que revisa el estado del pedido y decide qué hacer en cada caso.
+Problema: Cada regla nueva o estado nuevo obliga a editar ese bloque, y es fácil olvidar un caso. Además, las reglas de todas las fases quedan mezcladas en la clase Pedido, lo que la hace más difícil de mantener.
+
+4.	Patrones de diseño elegidos  
+•	Patrón 1: Factory Method (creacional) - resuelve el problema 1  
+Cómo se aplica: Se define una creación común de pedidos mediante crearPedido(), y cada tipo de combo tiene su propia fábrica como FabricaComboHamburguesa, FabricaComboFamiliar, que se encargan de agregar los productos correspondientes. 
+Por qué se eligió: Se busca descartar el switch o la Simple Factory porque ambos concentran todos los combos en un solo lugar que hay que modificar con cada combo nuevo. Con Factory Method, si el restaurante agrega un combo nuevo, solo es necesario crear una clase nueva y no se toca el código existente aplicando el principio abierto/cerrado.  
+Consecuencias:  
+•	Premite gregar combos sin modificar código existente.  
+•	Tiene una sola regla de armado por combo.  
+•	Se crean más clases en el proyecto, que puede ser excesivo si el menú tiene pocos combos.  
+
+•	Patrón 2: Builder (creacional) - resuelve el problema 2  
+Cómo se aplica: Se utiliza una clase PedidoBuilder con métodos encadenados, agregarPlato(), agregarBebida(producto, cantidad) y agregarComplemento(). Al finalizar, se utiliza el método construir(), que valida que haya al menos un producto y entrega el Pedido.
+Por qué se eligió: Se evitó el constructor telescópico por ser ilegible y los setters sueltos porque permiten dejar el pedido a medias. El Builder construye paso a paso y valida, por ejemplo, que haya al menos un producto, antes de entregar el objeto.  
+Consecuencias:  
+•	Permite crear pedidos personalizados de forma más ordenada y fácil de entender. 
+•	El pedido solo se crea cuando es válido.  
+•	Agrega una clase adicional el PedidoBuilder por cada objeto complejo.  
+
+•	Patrón 3: Observer (comportamiento) - resuelve el problema 3  
+Cómo se aplica: Pedido es el sujeto (Subject) y se apoya en Observable<T> para manejar las suscripciones. Las pantallas son observadores (Observador<T>) que se suscriben para recibir las notificaciones, por ahora existe una sola, PantallaGrafica. Cuando cambia el estado del pedido, por ejemplo, de “en preparación” a “listo para servir”, se envía un EventoPedido y todas las pantallas suscritas reciben el aviso y actualizan su información. El diseño permite agregar más pantallas sin modificar la clase Pedido.
+Por qué se eligió: Se evita que la clase Pedido tenga que comunicarse directamente con cada pantalla y también que estas tengan que consultar constantemente si hubo algún cambio. Con Observer, el pedido no necesita conocer quién lo escucha, y se pueden agregar o quitar observadores en ejecución sin modificar la clase Pedido.  
+Consecuencias:  
+•	Reduce la dependencia entre el pedido y las pantallas, facilitando agregar nuevas interfaces. 
+•	Las notificaciones son inmediatas, lo que ayuda al requisito de 3 segundos.  
+•	Si hay muchos observadores, las notificaciones pueden afectar el rendimiento, y el orden en que se notifican no está garantizado.  
+•	Un observador que falla no afecta a los demás.
+•	No se permiten suscripciones duplicadas.
+•	El evento trae el estado anterior y el nuevo.
+
+•	Patrón 4: Singleton (creacional) - resuelve el problema 4  
+Cómo se aplica: La clase GestorPromociones tiene una única instancia encargada de los descuentos por día. Todos los pedidos la consultan al calcular la cuenta. Cuando el administrador cambia una promoción, el cambio se refleja de inmediato en todo el sistema. Para el acceso concurrente se utiliza synchronized.
+Por qué se eligió: Se descartaron las copias por pedido, ya que estas generan inconsistencias, y las variables estáticas sueltas (sin control de acceso ni inicialización ordenada). El Singleton, todos consultan el mismo gestor y, cuando el administrador modifica una promoción, los siguientes cálculos utilizan la configuración actualizada. 
+Consecuencias:  
+•	Todos los pedidos usan la misma configuración de promociones.  
+•	El administrador tiene un único lugar desde donde modificar los descuentos. 
+•	Al manejar una instancia compartida, puede ser más difícil realizar pruebas unitarias. 
+•	Si varios usuarios modifican o consultan las promociones al mismo tiempo, es necesario controlar el acceso para evitar conflictos. 
+
+•	Patrón 5: State (comportamiento) - resuelve el problema 5
+Cómo se aplica: Pedido es el Context y delega en su estado actual lo que se puede hacer con el pedido. EstadoPedido es el State, y los estados concretos son EstadoRegistrado, EstadoEnPreparacion, EstadoListoParaServir, EstadoEntregado y EstadoCancelado. Cada estado conoce sus propias reglas de cancelación: en registrado se cancela sin costo, en preparación se cancela y se cobra el 25 %, y en listo para servir y entregado se rechaza.
+Por qué se eligió: Se descartó un enum con if/switch dentro de Pedido, porque cada cambio de regla modifica código existente. Con State, cada estado encapsula sus reglas y, si cambia una regla o se agrega un estado, se trabaja sobre la clase de ese estado y no sobre un bloque grande de condicionales.
+Consecuencias:
+•	No hay condicionales: las reglas viven en cada estado.
+•	Se pueden agregar estados nuevos con facilidad.
+•	Se crean 6 clases más (EstadoPedido y los cinco estados concretos).
+•	Las transiciones entre estados quedan repartidas en varias clases.
