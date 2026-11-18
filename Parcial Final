@@ -79,16 +79,21 @@ Consecuencias:
 •	Se crean más clases en el proyecto, que puede ser excesivo si el menú tiene pocos combos.  
 
 •	Patrón 2: Builder (creacional) - resuelve el problema 2  
-Cómo se aplica: Se utiliza una clase PedidoBuilder con métodos encadenados, agregarPlato(), agregarBebida(producto, cantidad) y agregarComplemento(). Al finalizar, se utiliza el método construir(), que valida que haya al menos un producto y entrega el Pedido.
-Por qué se eligió: Se evitó el constructor telescópico por ser ilegible y los setters sueltos porque permiten dejar el pedido a medias. El Builder construye paso a paso y valida, por ejemplo, que haya al menos un producto, antes de entregar el objeto.  
+Cómo se aplica: Se utiliza una clase PedidoBuilder con métodos encadenados, agregarPlato(), agregarBebida(producto, cantidad) y agregarComplemento(). Al finalizar, se utiliza el método construir(), 
+que valida que haya al menos un producto y entrega el Pedido.
+Por qué se eligió: Se evitó el constructor telescópico por ser ilegible y los setters sueltos porque permiten dejar el pedido a medias. El Builder construye paso a paso y valida, por ejemplo, 
+que haya al menos un producto, antes de entregar el objeto.  
 Consecuencias:  
 •	Permite crear pedidos personalizados de forma más ordenada y fácil de entender. 
 •	El pedido solo se crea cuando es válido.  
 •	Agrega una clase adicional el PedidoBuilder por cada objeto complejo.  
 
 •	Patrón 3: Observer (comportamiento) - resuelve el problema 3  
-Cómo se aplica: Pedido es el sujeto (Subject) y se apoya en Observable<T> para manejar las suscripciones. Las pantallas son observadores (Observador<T>) que se suscriben para recibir las notificaciones, por ahora existe una sola, PantallaGrafica. Cuando cambia el estado del pedido, por ejemplo, de “en preparación” a “listo para servir”, se envía un EventoPedido y todas las pantallas suscritas reciben el aviso y actualizan su información. El diseño permite agregar más pantallas sin modificar la clase Pedido.
-Por qué se eligió: Se evita que la clase Pedido tenga que comunicarse directamente con cada pantalla y también que estas tengan que consultar constantemente si hubo algún cambio. Con Observer, el pedido no necesita conocer quién lo escucha, y se pueden agregar o quitar observadores en ejecución sin modificar la clase Pedido.  
+Cómo se aplica: Pedido es el sujeto (Subject) y se apoya en Observable<T> para manejar las suscripciones. Las pantallas son observadores (Observador<T>) que se suscriben para recibir las notificaciones,
+por ahora existe una sola, PantallaGrafica. Cuando cambia el estado del pedido, por ejemplo, de “en preparación” a “listo para servir”, se envía un EventoPedido y todas las pantallas suscritas
+reciben el aviso y actualizan su información. El diseño permite agregar más pantallas sin modificar la clase Pedido.
+Por qué se eligió: Se evita que la clase Pedido tenga que comunicarse directamente con cada pantalla y también que estas tengan que consultar constantemente si hubo algún cambio. Con Observer, 
+el pedido no necesita conocer quién lo escucha, y se pueden agregar o quitar observadores en ejecución sin modificar la clase Pedido.  
 Consecuencias:  
 •	Reduce la dependencia entre el pedido y las pantallas, facilitando agregar nuevas interfaces. 
 •	Las notificaciones son inmediatas, lo que ayuda al requisito de 3 segundos.  
@@ -98,8 +103,10 @@ Consecuencias:
 •	El evento trae el estado anterior y el nuevo.
 
 •	Patrón 4: Singleton (creacional) - resuelve el problema 4  
-Cómo se aplica: La clase GestorPromociones tiene una única instancia encargada de los descuentos por día. Todos los pedidos la consultan al calcular la cuenta. Cuando el administrador cambia una promoción, el cambio se refleja de inmediato en todo el sistema. Para el acceso concurrente se utiliza synchronized.
-Por qué se eligió: Se descartaron las copias por pedido, ya que estas generan inconsistencias, y las variables estáticas sueltas (sin control de acceso ni inicialización ordenada). El Singleton, todos consultan el mismo gestor y, cuando el administrador modifica una promoción, los siguientes cálculos utilizan la configuración actualizada. 
+Cómo se aplica: La clase GestorPromociones tiene una única instancia encargada de los descuentos por día. Todos los pedidos la consultan al calcular la cuenta. Cuando el administrador cambia una promoción,
+el cambio se refleja de inmediato en todo el sistema. Para el acceso concurrente se utiliza synchronized.
+Por qué se eligió: Se descartaron las copias por pedido, ya que estas generan inconsistencias, y las variables estáticas sueltas (sin control de acceso ni inicialización ordenada). El Singleton,
+todos consultan el mismo gestor y, cuando el administrador modifica una promoción, los siguientes cálculos utilizan la configuración actualizada. 
 Consecuencias:  
 •	Todos los pedidos usan la misma configuración de promociones.  
 •	El administrador tiene un único lugar desde donde modificar los descuentos. 
@@ -107,10 +114,44 @@ Consecuencias:
 •	Si varios usuarios modifican o consultan las promociones al mismo tiempo, es necesario controlar el acceso para evitar conflictos. 
 
 •	Patrón 5: State (comportamiento) - resuelve el problema 5
-Cómo se aplica: Pedido es el Context y delega en su estado actual lo que se puede hacer con el pedido. EstadoPedido es el State, y los estados concretos son EstadoRegistrado, EstadoEnPreparacion, EstadoListoParaServir, EstadoEntregado y EstadoCancelado. Cada estado conoce sus propias reglas de cancelación: en registrado se cancela sin costo, en preparación se cancela y se cobra el 25 %, y en listo para servir y entregado se rechaza.
-Por qué se eligió: Se descartó un enum con if/switch dentro de Pedido, porque cada cambio de regla modifica código existente. Con State, cada estado encapsula sus reglas y, si cambia una regla o se agrega un estado, se trabaja sobre la clase de ese estado y no sobre un bloque grande de condicionales.
+Cómo se aplica: Pedido es el Context y delega en su estado actual lo que se puede hacer con el pedido. EstadoPedido es el State, y los estados concretos son EstadoRegistrado, EstadoEnPreparacion,
+EstadoListoParaServir, EstadoEntregado y EstadoCancelado. Cada estado conoce sus propias reglas de cancelación: en registrado se cancela sin costo, en preparación se cancela 
+y se cobra el 25 %, y en listo para servir y entregado se rechaza.
+Por qué se eligió: Se descartó un enum con if/switch dentro de Pedido, porque cada cambio de regla modifica código existente. Con State, cada estado encapsula sus reglas y, si cambia una regla
+o se agrega un estado, se trabaja sobre la clase de ese estado y no sobre un bloque grande de condicionales.
 Consecuencias:
 •	No hay condicionales: las reglas viven en cada estado.
 •	Se pueden agregar estados nuevos con facilidad.
 •	Se crean 6 clases más (EstadoPedido y los cinco estados concretos).
 •	Las transiciones entre estados quedan repartidas en varias clases.
+5. Arquitectura general
+
+El sistema se divide en dos grupos de paquetes: un núcleo con toda la lógica del negocio y dos interfaces que solo muestran información y leen lo que escribe el usuario.
+Las dos interfaces usan el mismo núcleo y no se conocen entre sí.
+   app.MainConsola              app.MainGrafica          <- puntos de entrada
+         │                            │
+   ┌─────▼──────┐              ┌──────▼───────┐
+   │  consola   │              │   grafica    │          <- INTERFACES
+   │ Consola    │              │ Grafica      │             (solo presentación)
+   │ PantallaCo.│              │ PantallaGra. │
+   └─────┬──────┘              └──────┬───────┘
+         └───────────┬────────────────┘
+                     ▼
+         ┌───────────────────────┐
+         │  servicio.Restaurante │                        <- NÚCLEO (fachada)
+         └───────────┬───────────┘
+        ┌────────────┼──────────────┬───────────┐
+        ▼            ▼              ▼           ▼
+     modelo        estado       fabrica      observer
+  (Pedido, Builder, (State)   (Factory     (Observable,
+   Productos,                  Method)      Observador)
+   GestorPromociones)
+Regla de dependencia
+
+Las flechas van siempre de la interfaz hacia el núcleo, nunca al revés. Ninguna clase del núcleo importa consola, grafica ni javax.swing, y ninguna lee del teclado. Por eso:
+
+Se cambia o se agrega una interfaz, por ejemplo una web, sin modificar el núcleo.
+Se prueba el núcleo con pruebas unitarias sin abrir ventanas ni escribir en consola.
+Se agregan combos, estados o pantallas sin tocar la otra interfaz.
+
+Esto aplica el principio de responsabilidad única (cada capa hace una cosa) y el de inversión de dependencias (el núcleo depende de la interfaz Observador, no de pantallas concretas).
